@@ -1,0 +1,17 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{3ADA5975-24E9-41D6-9E82-271C08B95FAA}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "UConstraints",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
+		}
+	]
+}
