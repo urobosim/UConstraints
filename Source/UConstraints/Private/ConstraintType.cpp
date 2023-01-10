@@ -48,24 +48,29 @@ void UNeedleConstraint::OnPrimaryAreaBeginOverlap(class UPrimitiveComponent* Hit
                                                   bool bFromSweep,
                                                   const FHitResult& SweepResult)
 {
-  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapBegin"));
-  if(ModularConstraint && ActorMesh)
+  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapBegin with %s, HitComp %s, OtherComp %s"), *OtherActor->GetName(), *HitComp->GetName(), *OtherComp->GetName());
+
+  if(OtherComp == MeshComponent->GetOwner()->GetRootComponent())
     {
+      UE_LOG(LogTemp, Error, TEXT("Overlap of %s with %s has same root comp %s"), *OtherComp->GetName(), *HitComp->GetName(), *MeshComponent->GetOwner()->GetRootComponent()->GetName());
+    }
+
+
+  if(ModularConstraint && MeshComponent)
+    {
+      if(OtherComp == MeshComponent->GetOwner()->GetRootComponent())
+        {
+          return;
+        }
+      bConnected = true;
+      ConnectedComp = OtherComp;
+
+      ModularConstraint->ConstraintActor1 = MeshComponent->GetOwner();
       ModularConstraint->ConstraintActor2 = OtherActor;
-      ModularConstraint->SetConstrainedComponents(ActorMesh,
+      ModularConstraint->SetConstrainedComponents(MeshComponent,
                                                   NAME_None,
                                                   OtherComp,
                                                   NAME_None);
-      // if (AStaticMeshActor* SMA = Cast<AStaticMeshActor>(OtherActor))
-      //   {
-      //     if(UStaticMeshComponent* SMC = SMA->GetStaticMeshComponent())
-      //       {
-      //         ModularConstraint->SetConstrainedComponents(ActorMesh,
-      //                                                     NAME_None,
-      //                                                     SMC,
-      //                                                     NAME_None);
-      //       }
-      //   }
     }
 }
 
@@ -74,9 +79,11 @@ void UNeedleConstraint::OnPrimaryAreaEndOverlap(class UPrimitiveComponent* HitCo
                                                 class UPrimitiveComponent* OtherComp,
                                                 int32 OtherBodyIndex)
 {
-  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapEnd"));
-  if(ModularConstraint)
+  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapEnd HitComp %s, OtherComp %s"), *HitComp->GetName(), *OtherComp->GetName());
+  if(ModularConstraint && (OtherComp == ConnectedComp)  && bConnected)
   {
+
+    bConnected = false;
     ModularConstraint->BreakConstraint();
     FConstrainComponentPropName Name;
     Name.ComponentName = FName(TEXT("None"));
@@ -93,31 +100,29 @@ void UNeedleConstraint::OnSecondaryAreaBeginOverlap(class UPrimitiveComponent* H
                                                     bool bFromSweep,
                                                     const FHitResult& SweepResult)
 {
-  UE_LOG(LogTemp, Error, TEXT("SecondaryOverlapBegin"));
+  UE_LOG(LogTemp, Error, TEXT("SecondaryOverlapBegin with %s"), *OtherActor->GetName());
 
-  if(FixedConstraint && ActorMesh)
+  if(FixedConstraint && MeshComponent)
     {
+      if(OtherComp == MeshComponent->GetOwner()->GetRootComponent())
+        {
+          return;
+        }
+
+      if(bConnected && (OtherComp != ConnectedComp))
+        {
+          UE_LOG(LogTemp, Error, TEXT("[%s] Already connected to %s. Cannot connect to %s"), *FString(__FUNCTION__), *ConnectedComp->GetName(),*OtherComp->GetName());
+          return;
+        }
+
+      FixedConstraint->ConstraintActor1 = MeshComponent->GetOwner();
       FixedConstraint->ConstraintActor2 = OtherActor;
-      FixedConstraint->SetConstrainedComponents(ActorMesh,
+      FixedConstraint->SetConstrainedComponents(MeshComponent,
                                                 NAME_None,
                                                 OtherComp,
                                                 NAME_None);
-    }
-  // if(FixedConstraint)
-  //   {
-  //     if (AStaticMeshActor* SMA = Cast<AStaticMeshActor>(OtherActor))
-  //       {
-  //         UStaticMeshComponent* SMC = SMA->GetStaticMeshComponent();
-  //         if(SMC)
-  //           {
-  //             FixedConstraint->SetConstrainedComponents(ActorMesh,
-  //                                                       NAME_None,
-  //                                                       SMC,
-  //                                                       NAME_None);
-  //           }
-  //       }
-  //   }
 
+    }
 };
 
         // Function called when an item leaves the fixation overlap area
@@ -130,6 +135,11 @@ void UNeedleConstraint::OnSecondaryAreaEndOverlap(class UPrimitiveComponent* Hit
   UE_LOG(LogTemp, Error, TEXT("SecondaryOverlapEnd"));
   if(FixedConstraint)
     {
+      if(bConnected && (OtherComp != ConnectedComp))
+        {
+          UE_LOG(LogTemp, Error, TEXT("[%s]  %s is not the connected comp %s. Ignore EndOverlap"), *FString(__FUNCTION__), *OtherComp->GetName(), *ConnectedComp->GetName());
+          return;
+        }
       FixedConstraint->BreakConstraint();
       FConstrainComponentPropName Name;
       Name.ComponentName = FName(TEXT("None"));
@@ -140,14 +150,14 @@ void UNeedleConstraint::OnSecondaryAreaEndOverlap(class UPrimitiveComponent* Hit
 
 }
 
-void UNeedleConstraint::SetupPrimaryCondition(UObject* PrimaryTrigger)
+void UNeedleConstraint::SetupPrimaryCondition(UObject* InPrimaryTrigger)
 {
-  ActorMesh = Cast<UPrimitiveComponent>(PrimaryTrigger);
-  if(ActorMesh)
+  PrimaryTrigger = Cast<UPrimitiveComponent>(InPrimaryTrigger);
+  if(PrimaryTrigger)
     {
       UE_LOG(LogTemp, Error, TEXT("SetupPrimarycondition"));
-      ActorMesh->OnComponentBeginOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaBeginOverlap);
-      ActorMesh->OnComponentEndOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaEndOverlap);
+      PrimaryTrigger->OnComponentBeginOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaBeginOverlap);
+      PrimaryTrigger->OnComponentEndOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaEndOverlap);
     }
   else
     {

@@ -23,12 +23,20 @@ void UConstraintComponent::Init(UPhysicsConstraintComponent* InFixedConstraint,
                                 UObject* InPrimaryTrigger,
                                 UObject* InTrigger)
 {
-  if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent()))
+
+  UE_LOG(LogTemp, Error, TEXT("[%s] %s: CallInit"), *FString(__FUNCTION__), *GetName());
+  if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(InPrimaryTrigger))
     {
      Temp->SetGenerateOverlapEvents(true);
     }
+  if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(InTrigger))
+    {
+     Temp->SetGenerateOverlapEvents(true);
+    }
+  PrimaryTrigger = InPrimaryTrigger;
   Trigger = InTrigger;
   SetConstraints(InFixedConstraint, InModularConstraint);
+
 }
 
 void UConstraintComponent::SetConstraints(UPhysicsConstraintComponent* InFixedConstraint,
@@ -51,6 +59,7 @@ void UConstraintComponent::SetConstraints(UPhysicsConstraintComponent* InFixedCo
 void UConstraintComponent::OnComponentCreated()
 {
   Super::OnComponentCreated();
+  UE_LOG(LogTemp, Error, TEXT("[%s] %s: Component Created"), *FString(__FUNCTION__), *GetName());
 }
 
 void UConstraintComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
@@ -63,15 +72,17 @@ void UConstraintComponent::BeginPlay()
 {
   Super::BeginPlay();
 
+  UE_LOG(LogTemp, Error, TEXT("[%s] %s: BeginPlay"), *FString(__FUNCTION__), *GetName());
   if(ConstraintType && Trigger)
     {
+      ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
       ConstraintType->SetConstraints(FixedConstraint, ModularConstraint);
       ConstraintType->SetupPrimaryCondition(PrimaryTrigger);
       ConstraintType->SetupSecondaryCondition(Trigger);
     }
   else
     {
-      UE_LOG(LogTemp, Error, TEXT("[%s]: ConstraintType or Trigger missing"));
+      UE_LOG(LogTemp, Error, TEXT("[%s] %s: ConstraintType or Trigger missing"), *FString(__FUNCTION__), *GetName());
     }
 }
 

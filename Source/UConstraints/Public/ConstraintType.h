@@ -24,6 +24,10 @@ public:
           void SetConstraints(UPhysicsConstraintComponent* InFixedConstraint,
                               UPhysicsConstraintComponent* InModularConstraint);
 
+
+          UPROPERTY()
+            UPrimitiveComponent* MeshComponent = nullptr;
+
 protected:
 
         UPROPERTY()
@@ -47,12 +51,18 @@ public:
           // UPROPERTY(EditAnywhere)
           // UBoxComponent* BoxComponent;
 
-        virtual void SetupPrimaryCondition(UObject* PrimaryTrigger) override;
+        virtual void SetupPrimaryCondition(UObject* InPrimaryTrigger) override;
         virtual void SetupSecondaryCondition(UObject* SecundaryTrigger) override;
  protected:
 
           UPROPERTY()
-            UPrimitiveComponent* ActorMesh = nullptr;
+            UPrimitiveComponent* PrimaryTrigger = nullptr;
+
+          UPROPERTY()
+            bool bConnected = false;
+
+          UPROPERTY()
+            UPrimitiveComponent* ConnectedComp = nullptr;
 
 	UFUNCTION()
 	virtual void OnPrimaryAreaBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor,
