@@ -9,6 +9,7 @@ UConstraintComponent::UConstraintComponent()
   // Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
   // off to improve performance if you don't need them.
   PrimaryComponentTick.bCanEverTick = true;
+  bWantsInitializeComponent = true;
   // ModularConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(FName(GetName() + TEXT("_ModularConstraint")));
   // FixedConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(FName(GetName() + TEXT("_FixedConstraint")));
 
@@ -59,8 +60,63 @@ void UConstraintComponent::SetConstraints(UPhysicsConstraintComponent* InFixedCo
 void UConstraintComponent::OnComponentCreated()
 {
   Super::OnComponentCreated();
-  UE_LOG(LogTemp, Error, TEXT("[%s] %s: Component Created"), *FString(__FUNCTION__), *GetName());
 }
+
+void UConstraintComponent::InitializeComponent()
+{
+  Super::InitializeComponent();
+  TInlineComponentArray<UActorComponent*> ActorComps;
+  GetOwner()->GetComponents(UActorComponent::StaticClass(), ActorComps, false);
+  UPhysicsConstraintComponent* FixedC = nullptr;
+  UPhysicsConstraintComponent* ModularC = nullptr;
+  for(auto& Comp : ActorComps)
+    {
+      UE_LOG(LogTemp, Error, TEXT("[%s] %s: Comps %s"), *FString(__FUNCTION__),
+             *GetName(), *Comp->GetName());
+
+      if(Comp->GetName().Equals("Trigger"))
+        {
+          Trigger = Comp;
+          if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(Trigger))
+            {
+              Temp->SetGenerateOverlapEvents(true);
+            }
+        }
+      else if(Comp->GetName().Equals("PrimaryTrigger"))
+        {
+          PrimaryTrigger = Comp;
+
+          if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(PrimaryTrigger))
+            {
+              Temp->SetGenerateOverlapEvents(true);
+            }
+        }
+      else if(Comp->GetName().Equals("ModularC"))
+        {
+          ModularC = Cast<UPhysicsConstraintComponent>(Comp);
+        }
+      else if(Comp->GetName().Equals("FixedC"))
+        {
+          FixedC = Cast<UPhysicsConstraintComponent>(Comp);
+        }
+    }
+  SetConstraints(FixedC, ModularC);
+
+  UE_LOG(LogTemp, Error, TEXT("[%s] %s: Begin stuff from begin play"), *FString(__FUNCTION__), *GetName());
+  if(ConstraintType && Trigger)
+    {
+      ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
+      ConstraintType->SetConstraints(FixedConstraint, ModularConstraint);
+      ConstraintType->SetupPrimaryCondition(PrimaryTrigger);
+      ConstraintType->SetupSecondaryCondition(Trigger);
+    }
+  else
+    {
+      UE_LOG(LogTemp, Error, TEXT("[%s] %s: ConstraintType or Trigger missing"), *FString(__FUNCTION__), *GetName());
+    }
+
+}
+
 
 void UConstraintComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
@@ -73,17 +129,17 @@ void UConstraintComponent::BeginPlay()
   Super::BeginPlay();
 
   UE_LOG(LogTemp, Error, TEXT("[%s] %s: BeginPlay"), *FString(__FUNCTION__), *GetName());
-  if(ConstraintType && Trigger)
-    {
-      ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
-      ConstraintType->SetConstraints(FixedConstraint, ModularConstraint);
-      ConstraintType->SetupPrimaryCondition(PrimaryTrigger);
-      ConstraintType->SetupSecondaryCondition(Trigger);
-    }
-  else
-    {
-      UE_LOG(LogTemp, Error, TEXT("[%s] %s: ConstraintType or Trigger missing"), *FString(__FUNCTION__), *GetName());
-    }
+  // if(ConstraintType && Trigger)
+  //   {
+  //     ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
+  //     ConstraintType->SetConstraints(FixedConstraint, ModularConstraint);
+  //     ConstraintType->SetupPrimaryCondition(PrimaryTrigger);
+  //     ConstraintType->SetupSecondaryCondition(Trigger);
+  //   }
+  // else
+  //   {
+  //     UE_LOG(LogTemp, Error, TEXT("[%s] %s: ConstraintType or Trigger missing"), *FString(__FUNCTION__), *GetName());
+  //   }
 }
 
 

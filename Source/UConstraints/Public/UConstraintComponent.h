@@ -21,6 +21,8 @@ public:
         virtual void OnComponentCreated() override;
         virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 
+        virtual void InitializeComponent() override;
+
         UFUNCTION(BlueprintCallable)
         virtual void Init(UPhysicsConstraintComponent* InFixedConstraint,
                           UPhysicsConstraintComponent* InModularConstraint,
