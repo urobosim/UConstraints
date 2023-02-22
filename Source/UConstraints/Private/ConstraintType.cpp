@@ -48,7 +48,6 @@ void UNeedleConstraint::OnPrimaryAreaBeginOverlap(class UPrimitiveComponent* Hit
                                                   bool bFromSweep,
                                                   const FHitResult& SweepResult)
 {
-  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapBegin with %s, HitComp %s, OtherComp %s"), *OtherActor->GetName(), *HitComp->GetName(), *OtherComp->GetName());
 
   if(OtherComp == MeshComponent->GetOwner()->GetRootComponent())
     {
@@ -79,7 +78,6 @@ void UNeedleConstraint::OnPrimaryAreaEndOverlap(class UPrimitiveComponent* HitCo
                                                 class UPrimitiveComponent* OtherComp,
                                                 int32 OtherBodyIndex)
 {
-  UE_LOG(LogTemp, Error, TEXT("PrimaryOverlapEnd HitComp %s, OtherComp %s"), *HitComp->GetName(), *OtherComp->GetName());
   if(ModularConstraint && (OtherComp == ConnectedComp)  && bConnected)
   {
 
@@ -100,7 +98,6 @@ void UNeedleConstraint::OnSecondaryAreaBeginOverlap(class UPrimitiveComponent* H
                                                     bool bFromSweep,
                                                     const FHitResult& SweepResult)
 {
-  UE_LOG(LogTemp, Error, TEXT("SecondaryOverlapBegin with %s"), *OtherActor->GetName());
 
   if(FixedConstraint && MeshComponent)
     {
@@ -155,7 +152,6 @@ void UNeedleConstraint::SetupPrimaryCondition(UObject* InPrimaryTrigger)
   PrimaryTrigger = Cast<UPrimitiveComponent>(InPrimaryTrigger);
   if(PrimaryTrigger)
     {
-      UE_LOG(LogTemp, Error, TEXT("SetupPrimarycondition"));
       PrimaryTrigger->OnComponentBeginOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaBeginOverlap);
       PrimaryTrigger->OnComponentEndOverlap.AddDynamic(this, &UNeedleConstraint::OnPrimaryAreaEndOverlap);
     }
@@ -176,7 +172,6 @@ void UNeedleConstraint::SetupSecondaryCondition(UObject* Trigger)
 
   if(UPrimitiveComponent* TriggerComponent = Cast<UPrimitiveComponent>(Trigger))
     {
-      UE_LOG(LogTemp, Error, TEXT("SetupSecondarycondition"));
       TriggerComponent->OnComponentBeginOverlap.AddDynamic(this, &UNeedleConstraint::OnSecondaryAreaBeginOverlap);
       TriggerComponent->OnComponentEndOverlap.AddDynamic(this, &UNeedleConstraint::OnSecondaryAreaEndOverlap);
     }

@@ -25,7 +25,6 @@ void UConstraintComponent::Init(UPhysicsConstraintComponent* InFixedConstraint,
                                 UObject* InTrigger)
 {
 
-  UE_LOG(LogTemp, Error, TEXT("[%s] %s: CallInit"), *FString(__FUNCTION__), *GetName());
   if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(InPrimaryTrigger))
     {
      Temp->SetGenerateOverlapEvents(true);
@@ -71,9 +70,6 @@ void UConstraintComponent::InitializeComponent()
   UPhysicsConstraintComponent* ModularC = nullptr;
   for(auto& Comp : ActorComps)
     {
-      UE_LOG(LogTemp, Error, TEXT("[%s] %s: Comps %s"), *FString(__FUNCTION__),
-             *GetName(), *Comp->GetName());
-
       if(Comp->GetName().Equals("Trigger"))
         {
           Trigger = Comp;
@@ -102,7 +98,6 @@ void UConstraintComponent::InitializeComponent()
     }
   SetConstraints(FixedC, ModularC);
 
-  UE_LOG(LogTemp, Error, TEXT("[%s] %s: Begin stuff from begin play"), *FString(__FUNCTION__), *GetName());
   if(ConstraintType && Trigger)
     {
       ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
