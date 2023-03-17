@@ -58,7 +58,7 @@ public:
           UPROPERTY()
             UPrimitiveComponent* PrimaryTrigger = nullptr;
 
-          UPROPERTY()
+          UPROPERTY(EditAnywhere)
             bool bConnected = false;
 
           UPROPERTY()

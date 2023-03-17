@@ -70,7 +70,7 @@ void UConstraintComponent::InitializeComponent()
   UPhysicsConstraintComponent* ModularC = nullptr;
   for(auto& Comp : ActorComps)
     {
-      if(Comp->GetName().Equals("Trigger"))
+      if(Comp->GetName().Equals(TriggerName))
         {
           Trigger = Comp;
           if(UPrimitiveComponent* Temp = Cast<UPrimitiveComponent>(Trigger))
@@ -78,7 +78,7 @@ void UConstraintComponent::InitializeComponent()
               Temp->SetGenerateOverlapEvents(true);
             }
         }
-      else if(Comp->GetName().Equals("PrimaryTrigger"))
+      else if(Comp->GetName().Equals(PrimaryTriggerName))
         {
           PrimaryTrigger = Comp;
 
@@ -87,20 +87,26 @@ void UConstraintComponent::InitializeComponent()
               Temp->SetGenerateOverlapEvents(true);
             }
         }
-      else if(Comp->GetName().Equals("ModularC"))
+      else if(Comp->GetName().Equals(ModularConstraintName))
         {
           ModularC = Cast<UPhysicsConstraintComponent>(Comp);
         }
-      else if(Comp->GetName().Equals("FixedC"))
+      else if(Comp->GetName().Equals(FixedConstraintName))
         {
           FixedC = Cast<UPhysicsConstraintComponent>(Comp);
+        }
+      else if(Comp->GetName().Equals(MeshName))
+        {
+          if(ConstraintType && Trigger)
+            {
+              ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(Comp);
+            }
         }
     }
   SetConstraints(FixedC, ModularC);
 
   if(ConstraintType && Trigger)
     {
-      ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
       ConstraintType->SetConstraints(FixedConstraint, ModularConstraint);
       ConstraintType->SetupPrimaryCondition(PrimaryTrigger);
       ConstraintType->SetupSecondaryCondition(Trigger);

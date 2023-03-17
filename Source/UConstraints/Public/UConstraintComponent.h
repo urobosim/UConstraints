@@ -57,6 +57,20 @@ public:
         UPROPERTY(EditAnywhere)
           float FixedConstraintBreakLimit = 10000.;
 
+        UPROPERTY(EditAnywhere)
+          FString TriggerName = TEXT("Trigger");
+
+        UPROPERTY(EditAnywhere)
+          FString PrimaryTriggerName = TEXT("PrimaryTrigger");
+
+        UPROPERTY(EditAnywhere)
+          FString ModularConstraintName = TEXT("ModularC");
+
+        UPROPERTY(EditAnywhere)
+          FString FixedConstraintName = TEXT("FixedC");
+
+        UPROPERTY(EditAnywhere)
+          FString MeshName = TEXT("Needle");
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };
