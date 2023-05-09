@@ -50,7 +50,6 @@ void UNeedleConstraint::OnPrimaryAreaBeginOverlap(class UPrimitiveComponent* Hit
 {
   if(ModularConstraint && MeshComponent)
     {
-      UE_LOG(LogTemp, Error, TEXT("[%s] HitComp %s OtherComp %s"), *FString(__FUNCTION__), *MeshComponent->GetName(),*OtherComp->GetName());
       if(OtherComp == MeshComponent)
         {
           return;
@@ -86,20 +85,22 @@ void UNeedleConstraint::OnPrimaryAreaEndOverlap(class UPrimitiveComponent* HitCo
   if(ModularConstraint)
     {
 
-      UE_LOG(LogTemp, Error, TEXT("[%s] OtherComp %s FixedConstraintComp %s"), *FString(__FUNCTION__), *OtherComp->GetName(), *ModularConstraint->ComponentName2.ComponentName.ToString());
-      if(ModularConstraint && (OtherComp == ConnectedComp)  && bConnected)
-      // if(bConnected && (OtherComp->GetName() != ModularConstraint->ComponentName2.ComponentName.ToString()))
+      UE_LOG(LogTemp, Error, TEXT("[%s] OtherComp %s Modular %s"), *FString(__FUNCTION__), *OtherComp->GetName(), *ModularConstraint->ComponentName2.ComponentName.ToString());
+      // if(ModularConstraint && (OtherComp == ConnectedComp)  && bConnected)
+      if(bConnected && (OtherComp->GetName() != ModularConstraint->ComponentName2.ComponentName.ToString()))
         {
-          UE_LOG(LogTemp, Error, TEXT("[%s]  %s is not the connected comp %s. Ignore EndOverlap"), *FString(__FUNCTION__), *OtherComp->GetName(), *FixedConstraint->ComponentName2.ComponentName.ToString());
+          UE_LOG(LogTemp, Error, TEXT("[%s]  %s is not the connected comp %s. Ignore EndOverlap"), *FString(__FUNCTION__), *OtherComp->GetName(), *ModularConstraint->ComponentName2.ComponentName.ToString());
           return;
         }
-          bConnected = false;
-          ModularConstraint->BreakConstraint();
-          FConstrainComponentPropName Name;
-          Name.ComponentName = FName(TEXT("None"));
-          ModularConstraint->ComponentName1 = Name;
-          ModularConstraint->ComponentName2 = Name;
-          ModularConstraint->ConstraintActor2 = nullptr;
+
+      UE_LOG(LogTemp, Display, TEXT("Disconnect %s and %s through ModularConstraint"), *OtherComp->GetName(), *MeshComponent->GetName());
+      bConnected = false;
+      ModularConstraint->BreakConstraint();
+      FConstrainComponentPropName Name;
+      Name.ComponentName = FName(TEXT("None"));
+      ModularConstraint->ComponentName1 = Name;
+      ModularConstraint->ComponentName2 = Name;
+      ModularConstraint->ConstraintActor2 = nullptr;
 
     }
 }
@@ -114,21 +115,18 @@ void UNeedleConstraint::OnSecondaryAreaBeginOverlap(class UPrimitiveComponent* H
 
   if(FixedConstraint && MeshComponent)
     {
-      UE_LOG(LogTemp, Error, TEXT("[%s] HitComp %s OtherComp %s"), *FString(__FUNCTION__), *MeshComponent->GetName(),*OtherComp->GetName());
       if(OtherComp == MeshComponent)
         {
           return;
         }
 
-      if(bConnected)
+      if(bConnected && ConnectedComp && ConnectedComp != OtherComp)
         {
-          if(ConnectedComp)
-            {
-              UE_LOG(LogTemp, Error, TEXT("[%s] Already connected to %s. Cannot connect to %s"), *FString(__FUNCTION__), *ConnectedComp->GetName(),*OtherComp->GetName());
-            }
+          UE_LOG(LogTemp, Error, TEXT("[%s] Already connected to %s. Cannot connect to %s"), *FString(__FUNCTION__), *ConnectedComp->GetName(),*OtherComp->GetName());
           return;
         }
 
+      UE_LOG(LogTemp, Display, TEXT("Connect %s with %s through FixedConstraint"), *OtherComp->GetName(), *MeshComponent->GetName());
       FixedConstraint->ConstraintActor1 = MeshComponent->GetOwner();
       FixedConstraint->ConstraintActor2 = OtherActor;
       FixedConstraint->SetConstrainedComponents(MeshComponent,
@@ -147,15 +145,14 @@ void UNeedleConstraint::OnSecondaryAreaEndOverlap(class UPrimitiveComponent* Hit
 {
   if(FixedConstraint)
     {
-
-      UE_LOG(LogTemp, Error, TEXT("[%s] OtherComp %s FixedConstraintComp %s"), *FString(__FUNCTION__), *OtherComp->GetName(), *FixedConstraint->ComponentName2.ComponentName.ToString());
-      if(bConnected && ConnectedComp && (OtherComp != ConnectedComp))
-      // if(bConnected && (OtherComp->GetName() != FixedConstraint->ComponentName2.ComponentName.ToString()))
+      // if(bConnected && ConnectedComp && (OtherComp != ConnectedComp))
+      if(bConnected && (OtherComp->GetName() != FixedConstraint->ComponentName2.ComponentName.ToString()))
         {
           UE_LOG(LogTemp, Error, TEXT("[%s]  %s is not the connected comp %s. Ignore EndOverlap"), *FString(__FUNCTION__), *OtherComp->GetName(), *FixedConstraint->ComponentName2.ComponentName.ToString());
           return;
         }
 
+      UE_LOG(LogTemp, Display, TEXT("Disconnect %s and %s through FixedConstraint"), *OtherComp->GetName(), *MeshComponent->GetName());
       FixedConstraint->BreakConstraint();
       FConstrainComponentPropName Name;
       Name.ComponentName = FName(TEXT("None"));

@@ -97,12 +97,13 @@ void UConstraintComponent::InitializeComponent()
         }
       else if(Comp->GetName().Equals(MeshName))
         {
-          if(ConstraintType && Trigger)
+          if(ConstraintType)
             {
               ConstraintType->MeshComponent = Cast<UPrimitiveComponent>(Comp);
             }
         }
     }
+
   SetConstraints(FixedC, ModularC);
 
   if(ConstraintType && Trigger)
