@@ -72,6 +72,7 @@ void UNeedleConstraint::OnPrimaryAreaBeginOverlap(class UPrimitiveComponent* Hit
                                                       NAME_None,
                                                       OtherComp,
                                                       NAME_None);
+          ModularConstraint->InitComponentConstraint();
         }
     }
 }
@@ -134,6 +135,7 @@ void UNeedleConstraint::OnSecondaryAreaBeginOverlap(class UPrimitiveComponent* H
                                                 OtherComp,
                                                 NAME_None);
 
+      FixedConstraint->InitComponentConstraint();
     }
 };
 
